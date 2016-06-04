@@ -1,10 +1,13 @@
 package com.example.android.sunshine.app;
 
 import android.annotation.TargetApi;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,8 +16,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,8 +33,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by KarthicK on 3/29/2016.
@@ -40,7 +43,7 @@ import java.util.List;
 
 public class ForecastFragment extends android.support.v4.app.Fragment {
 
-    private  ArrayAdapter<String> forecastAdapter;
+    private  ArrayAdapter<String> mforecastAdapter;
 
     public ForecastFragment() {
     }
@@ -93,10 +96,29 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if(id == R.id.action_refresh) {
-          FetchWeatherTask fetchWeatherTask =  new FetchWeatherTask();
-          fetchWeatherTask.execute("19607");
+           updateWeather();
+           return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Called when the Fragment is visible to the user.  This is generally
+     * tied to {@link --Activity onStart() Activity.onStart} of the containing
+     * Activity's lifecycle.
+     */
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
+    }
+
+    /*Method to update weather based on current location settings */
+    private void updateWeather(){
+        FetchWeatherTask fetchWeatherTask =  new FetchWeatherTask();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
+        fetchWeatherTask.execute(location);
     }
 
     @Override
@@ -106,22 +128,44 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-            /*Create Dummy data to populate the list view */
-        String[] forecastArray = {"Today - Sunny - 63/43", "Tomorrow - Rainy - 60/45", "Monday - Breezy - 49/60",
-                "Tuesday - Warmer - 65/47", "Wednesday - Pleasant - 69/45", "Thursday - Mild - 64/45",
-                "Friday - Partly Sunny - 59/37", "Saturday - Sunny - 65/50",
-                "Monday - Breezy - 49/60",
-                "Tuesday - Warmer - 65/47", "Wednesday - Pleasant - 69/45", "Thursday - Mild - 64/45",
-                "Friday - Partly Sunny - 59/37", "Saturday - Sunny - 65/50"};
-        List<String> weekForecast = new ArrayList<String>(Arrays.asList(forecastArray));
-
             /*Initiate ArrayAdapter */
-        forecastAdapter = new ArrayAdapter<String>(
-                getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, weekForecast);
+        mforecastAdapter = new ArrayAdapter<String>(
+                getActivity(), R.layout.list_item_forecast, R.id.list_item_forecast_textview, new ArrayList<String>());
 
             /* Get a reference to the list view and attach it to the adapter */
         ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
-        listView.setAdapter(forecastAdapter);
+        listView.setAdapter(mforecastAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            /**
+             * Callback method to be invoked when an item in this AdapterView has
+             * been clicked.
+             * <p/>
+             * Implementers can call getItemAtPosition(position) if they need
+             * to access the data associated with the selected item.
+             *
+             * @param parent   The AdapterView where the click happened.
+             * @param view     The view within the AdapterView that was clicked (this
+             *                 will be a view provided by the adapter)
+             * @param position The position of the view in the adapter.
+             * @param id       The row id of the item that was clicked.
+             */
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                /* Another way of doing it - this is how I did first
+                TextView forecastTextView = (TextView) view.findViewById(R.id.list_item_forecast_textview);
+                createToast(forecastTextView.getText()).show();
+                */
+
+                String foreCast = mforecastAdapter.getItem(position);
+               //createToast(foreCast).show();
+
+                Intent openDetailIntent = new Intent(getActivity(), DetailActivity.class);
+                openDetailIntent.putExtra(Intent.EXTRA_TEXT, foreCast);
+                startActivity(openDetailIntent);
+
+            }
+        });
 
 
 
@@ -129,7 +173,15 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
 
     }
 
-
+    /*Function to create a Toast with the message passed
+     *
+      * @param - toastMessage - the message to be displayed as toast
+      * @return - the created Toast
+      *
+      * */
+    private Toast createToast(CharSequence toastMessage){
+        return Toast.makeText(getActivity(), toastMessage, Toast.LENGTH_SHORT);
+    }
 
 
     public class FetchWeatherTask extends AsyncTask<String, Void, String[]>{
@@ -241,10 +293,10 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
         @Override
         protected void onPostExecute(String[] result) {
             if(result != null){
-                forecastAdapter.clear();
-                //forecastAdapter.addAll(result);
+                mforecastAdapter.clear();
+                //mforecastAdapter.addAll(result);
                 for (String dayForecast: result) {
-                    forecastAdapter.add(dayForecast);
+                    mforecastAdapter.add(dayForecast);
                 }
             }
         }
@@ -309,6 +361,9 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             // now we work exclusively in UTC
             dayTime = new Time();
 
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            String metric = prefs.getString(getString(R.string.pref_unit_key), getString(R.string.pref_unit_default));
+
             String[] resultStrs = new String[numDays];
             for(int i = 0; i < weatherArray.length(); i++) {
                 // For now, using the format "Day, description, hi/low"
@@ -337,6 +392,11 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
                 double high = temperatureObject.getDouble(OWM_MAX);
                 double low = temperatureObject.getDouble(OWM_MIN);
 
+                if(metric.trim().equalsIgnoreCase("IMPERIAL")){
+                    high = convertMetricToImperial(high);
+                    low = convertMetricToImperial(low);
+                }
+
                 highAndLow = formatHighLows(high, low);
                 resultStrs[i] = day + " - " + description + " - " + highAndLow;
             }
@@ -346,6 +406,10 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             }
             return resultStrs;
 
+        }
+
+        private double convertMetricToImperial(double metricTemp){
+            return (metricTemp * 1.8) + 32;
         }
 
 

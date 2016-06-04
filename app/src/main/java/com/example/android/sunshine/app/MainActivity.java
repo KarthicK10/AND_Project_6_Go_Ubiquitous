@@ -1,12 +1,19 @@
 package com.example.android.sunshine.app;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
 public class MainActivity extends ActionBarActivity {
+
+    private static final String LOG_TAG = MainActivity.class.getName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,7 +24,6 @@ public class MainActivity extends ActionBarActivity {
                     .add(R.id.container, new ForecastFragment())
                     .commit();
         }
-
     }
 
     @Override
@@ -34,13 +40,30 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if(id == R.id.action_settings){
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
+        }
+
+        if(id == R.id.action_map){
+            openPreferredLocationInMap();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
+    private void openPreferredLocationInMap(){
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String preferedLocation = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
 
+        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon().appendQueryParameter("q", preferedLocation).build();
+
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+        mapIntent.setData(geoLocation);
+        if(mapIntent.resolveActivity(getPackageManager()) != null)
+            startActivity(mapIntent);
+        else
+            Log.d(LOG_TAG, "Couldn't call " + preferedLocation + ", No map app found" );
+    }
 }
