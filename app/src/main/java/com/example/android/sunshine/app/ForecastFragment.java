@@ -37,7 +37,7 @@ import java.util.ArrayList;
 /**
  * Created by KarthicK on 3/29/2016.
  *
- * Forecast fragment containg a simple view
+ * Forecast fragment containing a simple view
  */
 
 
@@ -121,6 +121,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
         fetchWeatherTask.execute(location);
     }
 
+    
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -203,7 +204,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment {
             String outPutFomat = "JSON";
             String units = "metric";
             int daysCount = 15;
-            String apiKey = "e9cea29fbdb55d639de7e18de0ec9c1b";
+            final String apiKey = "e9cea29fbdb55d639de7e18de0ec9c1b";
 
             try {
                 // Construct the URL for the OpenWeatherMap query
