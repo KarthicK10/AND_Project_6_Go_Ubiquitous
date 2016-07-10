@@ -39,6 +39,30 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
 
     private static final String LOG_TAG = WeatherDbHelper.class.getSimpleName();
 
+    /**
+     * Called when the database connection is being configured, to enable features
+     * such as write-ahead logging or foreign key support.
+     * <p>
+     * This method is called before {@link #onCreate}, {@link #onUpgrade},
+     * {@link #onDowngrade}, or {@link #onOpen} are called.  It should not modify
+     * the database except to configure the database connection as required.
+     * </p><p>
+     * This method should only call methods that configure the parameters of the
+     * database connection, such as {@link SQLiteDatabase#enableWriteAheadLogging}
+     * {@link SQLiteDatabase#setForeignKeyConstraintsEnabled},
+     * {@link SQLiteDatabase#setLocale}, {@link SQLiteDatabase#setMaximumSize},
+     * or executing PRAGMA statements.
+     * </p>
+     *
+     * @param db The database.
+     */
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.execSQL("PRAGMA foreign_keys=ON;");
+        db.setForeignKeyConstraintsEnabled(true);
+    }
+
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
 

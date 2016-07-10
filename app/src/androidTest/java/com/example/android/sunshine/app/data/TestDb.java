@@ -134,7 +134,7 @@ public class TestDb extends AndroidTestCase {
             assertEquals("Error: DB not open", true, db.isOpen());
 
             //Create content values for weather table insert
-            ContentValues weatherValues = TestUtilities.createWeatherValues(100); //Hard coding wrong location id for testing
+            ContentValues weatherValues = TestUtilities.createWeatherValues(locationRowId);
 
             //Insert weather values into db
             long weatherRowId = db.insert(WeatherContract.WeatherEntry.TABLE_NAME, null, weatherValues);
