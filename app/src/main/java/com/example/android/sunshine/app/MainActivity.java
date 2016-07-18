@@ -17,6 +17,9 @@ import android.view.View;
 public class MainActivity extends ActionBarActivity {
 
     private static final String LOG_TAG = MainActivity.class.getName();
+    private static final String FORECASTFRAGMENT_TAG = "FFTAG";
+
+    private String mLocation;
 
     /**
      * Dispatch onStart() to all fragments.  Ensure any created loaders are
@@ -42,6 +45,15 @@ public class MainActivity extends ActionBarActivity {
     protected void onResume() {
         Log.i(LOG_TAG, "onResume Called");
         super.onResume();
+        String location = Utility.getPreferredLocation(this);
+        // update the location in our second pane using the fragment manager
+        if(location != null && !location.equals(mLocation)){
+            ForecastFragment ff = (ForecastFragment) getSupportFragmentManager().findFragmentByTag(FORECASTFRAGMENT_TAG);
+            if(ff != null){
+                ff.onLocationChanged();
+            }
+            mLocation = location;
+        }
     }
 
     @Override
@@ -68,11 +80,12 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.i(LOG_TAG, "onCreate Called");
+        mLocation = Utility.getPreferredLocation(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new ForecastFragment())
+                    .add(R.id.container, new ForecastFragment(), FORECASTFRAGMENT_TAG)
                     .commit();
         }
     }
