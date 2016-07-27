@@ -2,11 +2,9 @@ package com.example.android.sunshine.app;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -19,9 +17,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.example.android.sunshine.app.data.WeatherContract;
+import com.example.android.sunshine.app.service.SunshineService;
 
 /**
  * Created by KarthicK on 3/29/2016.
@@ -33,7 +31,16 @@ import com.example.android.sunshine.app.data.WeatherContract;
 public class ForecastFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
     private static final int FORECAST_LOADER = 0;
-    private  ForecastAdapter mforecastAdapter;
+    private static final String SELECTED_KEY = "SelectedPosition";
+
+    private ListView mListView;
+    private int mSelectedPosition = ListView.INVALID_POSITION;
+
+    private ForecastAdapter mForecastAdapter;
+
+    // Flag to determine if we want to use a separate view for "today".
+    private boolean mUseTodayLayout = true;
+
 
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -65,7 +72,49 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
     static final int COL_COORD_LAT = 7;
     static final int COL_COORD_LONG = 8;
 
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callback{
+        /**
+         * DetailFragmentCallback for when an item has been selected.
+         */
+        public void onItemSelected(Uri dateUri);
+    }
+
     public ForecastFragment() {
+    }
+
+    /**
+     * Called to ask the fragment to save its current dynamic state, so it
+     * can later be reconstructed in a new instance of its process is
+     * restarted.  If a new instance of the fragment later needs to be
+     * created, the data you place in the Bundle here will be available
+     * in the Bundle given to {@link #onCreate(Bundle)},
+     * {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}, and
+     * {@link #onActivityCreated(Bundle)}.
+     * <p/>
+     * <p>This corresponds to {@link ##Activity#onSaveInstanceState(Bundle)
+     * Activity.onSaveInstanceState(Bundle)} and most of the discussion there
+     * applies here as well.  Note however: <em>this method may be called
+     * at any time before {@link #onDestroy()}</em>.  There are many situations
+     * where a fragment may be mostly torn down (such as when placed on the
+     * back stack with no UI showing), but its state will not be saved until
+     * its owning activity actually needs to save its state.
+     *
+     * @param outState Bundle in which to place your saved state.
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        // When tablets rotate, the currently selected list item needs to be saved.
+        // When no item is selected, mPosition will be set to Listview.INVALID_POSITION,
+        // so check for that before storing.
+        if (mSelectedPosition != ListView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mSelectedPosition);
+        }
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -127,28 +176,35 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
 
     /*Method to update weather based on current location settings */
     private void updateWeather(){
+        Intent intent = new Intent(getActivity(), SunshineService.class);
+        intent.putExtra(SunshineService.LOCATION_QUERY_EXTRA,
+                Utility.getPreferredLocation(getActivity()));
+        getActivity().startService(intent);
+        /*
         FetchWeatherTask fetchWeatherTask =  new FetchWeatherTask(getContext());
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
         fetchWeatherTask.execute(location);
+        */
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              final Bundle savedInstanceState) {
 
-        // The cursor adapter will take date from our cursor and populate the ListView.
-        mforecastAdapter = new ForecastAdapter(getActivity(), null, 0);
+        // The ForecastAdapter will take data from a source and
+        // use it to populate the ListView it's attached to.
+        mForecastAdapter = new ForecastAdapter(getActivity(), null, 0);
 
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
          /* Get a reference to the list view and attach it to the adapter */
-        ListView listView = (ListView) rootView.findViewById(R.id.listview_forecast);
-        listView.setAdapter(mforecastAdapter);
+        mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        mListView.setAdapter(mForecastAdapter);
 
         /*Add listener for click on list items to show the detail activity */
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView adapterView, View view, int position, long id) {
                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
@@ -156,16 +212,24 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
                 if(cursor != null){
                     String locationSetting = Utility.getPreferredLocation(getActivity());
-                    Intent intent = new Intent(getActivity(), DetailActivity.class)
-                            .setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                    ((Callback)getActivity())
+                            .onItemSelected(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
                                     locationSetting, cursor.getLong(COL_WEATHER_DATE)
                             ));
-                    startActivity(intent);
-
                 }
+                mSelectedPosition = position;
             }
         });
 
+
+        // If there's instance state, mine it for useful information.
+        // The end-goal here is that the user never knows that turning their device sideways
+        // does crazy lifecycle related things.  It should feel like some stuff stretched out,
+        // or magically appeared to take advantage of room, but data or place in the app was never
+        // actually *lost*.
+        if(savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)){
+            mSelectedPosition = savedInstanceState.getInt(SELECTED_KEY);
+        }
         return rootView;
     }
 
@@ -256,7 +320,12 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
      */
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        mforecastAdapter.swapCursor(cursor);
+        mForecastAdapter.swapCursor(cursor);
+        if(mSelectedPosition != ListView.INVALID_POSITION){
+            // If we don't need to restart the loader, and there's a desired position to restore
+            // to, do so now.
+            mListView.smoothScrollToPosition(mSelectedPosition);
+        }
     }
 
     /**
@@ -268,18 +337,16 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
      */
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        mforecastAdapter.swapCursor(null);
+        mForecastAdapter.swapCursor(null);
     }
 
-    /*
-     *  Function to create a Toast with the message passed
-     * @param - toastMessage - the message to be displayed as toast
-     * @return - the created Toast
-     *
-   */
-    private Toast createToast(CharSequence toastMessage){
-        return Toast.makeText(getActivity(), toastMessage, Toast.LENGTH_SHORT);
+    public void setUseTodayLayout(boolean useTodayLayout){
+        mUseTodayLayout = useTodayLayout;
+        if(mForecastAdapter != null){
+            mForecastAdapter.setUseTodayLayout(useTodayLayout);
+        }
     }
 
 
 }
+

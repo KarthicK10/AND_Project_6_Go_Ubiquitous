@@ -1,14 +1,139 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ForecastFragment">
+    >
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/detail_forecast"
-        android:text=""/>
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_gravity="left"
+        android:gravity="center_vertical"
+        >
 
-</FrameLayout>
+        <!-- Header : Day, Date -->
+         <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:id="@+id/detail_friendly_day_textview"
+             android:fontFamily="sans-serif-condensed"
+             android:textSize="24sp"
+             android:textColor="@color/black"
+             />
+
+         <TextView
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:id="@+id/detail_month_day_textview"
+             android:textSize="16sp"
+             android:fontFamily="sans-serif-condensed"
+             android:textColor="@color/grey_700"
+             />
+
+        <!-- Main Content: high, low, weather state -->
+         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center_horizontal"
+            >
+
+             <LinearLayout
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:orientation="vertical"
+                 android:gravity="left"
+                 >
+
+                 <TextView
+                     android:id="@+id/detail_high_textview"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:textSize="96sp"
+                     android:fontFamily="sans-serif-light"
+                     />
+
+                 <TextView
+                     android:id="@+id/detail_low_textview"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:textSize="48sp"
+                     android:textColor="@color/grey_700"
+                     android:layout_gravity="center_horizontal"
+                     />
+
+             </LinearLayout>
+
+             <LinearLayout
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:orientation="vertical"
+                 android:gravity="center_horizontal"
+                 android:layout_gravity="center"
+                 >
+
+                 <ImageView
+                     android:id="@+id/detail_icon"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     />
+
+                 <TextView
+                     android:id="@+id/detail_forecast_textview"
+                     android:layout_width="wrap_content"
+                     android:layout_height="wrap_content"
+                     android:textAppearance="?android:textAppearanceLarge"
+                     android:textColor="@color/grey_700"
+                     />
+
+             </LinearLayout>
+
+         </LinearLayout>
+
+
+         <!-- Humidity, wind, pressure-->
+
+
+        <LinearLayout
+            android:layout_height="match_parent"
+            android:layout_marginRight="0dp"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/detail_humidity_textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceLarge"
+                />
+
+            <TextView
+                android:id="@+id/detail_wind_textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceLarge"
+                android:layout_marginTop="4dp"
+                />
+
+            <TextView
+                android:id="@+id/detail_pressure_textview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceLarge"
+                android:layout_marginTop="4dp"
+                />
+
+
+        </LinearLayout>
+
+
+
+
+    </LinearLayout>
+
+</ScrollView>
