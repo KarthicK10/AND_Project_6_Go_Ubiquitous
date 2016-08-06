@@ -4,4 +4,8 @@
           android:title="@string/menu_refresh"
           app:showAsAction="never" />
 
+    <item android:id="@+id/action_map"
+        android:title="@string/menu_map"
+        app:showAsAction="never" />
+
 </menu>

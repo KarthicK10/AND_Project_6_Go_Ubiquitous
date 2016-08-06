@@ -1,5 +1,7 @@
 package com.example.android.sunshine.app;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -8,6 +10,7 @@ import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,7 +22,7 @@ import android.widget.CursorAdapter;
 import android.widget.ListView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
-import com.example.android.sunshine.app.service.SunshineService;
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 /**
  * Created by KarthicK on 3/29/2016.
@@ -29,6 +32,8 @@ import com.example.android.sunshine.app.service.SunshineService;
 
 
 public class ForecastFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+
+    private static final String LOG_TAG = ForecastFragment.class.getSimpleName();
 
     private static final int FORECAST_LOADER = 0;
     private static final String SELECTED_KEY = "SelectedPosition";
@@ -41,6 +46,9 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
     // Flag to determine if we want to use a separate view for "today".
     private boolean mUseTodayLayout = true;
 
+    //Alarm Manager and Pending Intent to schedule weather update from api server
+    private AlarmManager alarmManager;
+    private PendingIntent alarmIntent;
 
     private static final String[] FORECAST_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
@@ -161,11 +169,30 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+
+
         int id = item.getItemId();
         if(id == R.id.action_refresh) {
            updateWeather();
            return true;
         }
+
+
+
+        if(id == R.id.action_settings){
+            Intent settingsIntent = new Intent(getActivity(), SettingsActivity.class);
+            startActivity(settingsIntent);
+        }
+
+        if(id == R.id.action_map){
+            openPreferredLocationInMap();
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
     }
 
@@ -176,16 +203,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
 
     /*Method to update weather based on current location settings */
     private void updateWeather(){
-        Intent intent = new Intent(getActivity(), SunshineService.class);
-        intent.putExtra(SunshineService.LOCATION_QUERY_EXTRA,
-                Utility.getPreferredLocation(getActivity()));
-        getActivity().startService(intent);
-        /*
-        FetchWeatherTask fetchWeatherTask =  new FetchWeatherTask(getContext());
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-        fetchWeatherTask.execute(location);
-        */
+        SunshineSyncAdapter.syncImmediately(getActivity());
     }
 
     @Override
@@ -347,6 +365,33 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
         }
     }
 
+
+
+    private void openPreferredLocationInMap(){
+
+        // Using the URI scheme for showing a location found on a map.  This super-handy
+        // intent call is detailed in the "Common Intents" page of Android's developer site:
+        // http://developer.android.com/guide/components/intents-common.html#Maps
+
+        if(null != mForecastAdapter){
+            Cursor cursor = mForecastAdapter.getCursor();
+            if(null != cursor){
+                cursor.moveToPosition(0);
+                String posLat = cursor.getString(COL_COORD_LAT);
+                String posLong = cursor.getString(COL_COORD_LONG);
+                Uri geoLocation = Uri.parse("geo:"+posLat+","+posLong);
+
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW);
+                mapIntent.setData(geoLocation);
+
+                if(mapIntent.resolveActivity(getContext().getPackageManager()) != null)
+                    startActivity(mapIntent);
+                else
+                    Log.d(LOG_TAG, "Couldn't call " + geoLocation.toString() + ", No map app found" );
+            }
+        }
+
+    }
 
 }
 

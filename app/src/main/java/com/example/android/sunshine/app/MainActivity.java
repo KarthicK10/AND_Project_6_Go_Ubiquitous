@@ -2,16 +2,15 @@ package com.example.android.sunshine.app;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+
+import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 
 
 public class MainActivity extends ActionBarActivity implements ForecastFragment.Callback{
@@ -134,6 +133,7 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         ForecastFragment forecastFragment = (ForecastFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_forecast);
         forecastFragment.setUseTodayLayout(!mTwoPane);
 
+        SunshineSyncAdapter.initializeSyncAdapter(this);
     }
 
     @Override
@@ -149,37 +149,5 @@ public class MainActivity extends ActionBarActivity implements ForecastFragment.
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        if(id == R.id.action_settings){
-            Intent settingsIntent = new Intent(this, SettingsActivity.class);
-            startActivity(settingsIntent);
-        }
-
-        if(id == R.id.action_map){
-            openPreferredLocationInMap();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void openPreferredLocationInMap(){
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String preferedLocation = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default));
-
-        Uri geoLocation = Uri.parse("geo:0,0?").buildUpon().appendQueryParameter("q", preferedLocation).build();
-
-        Intent mapIntent = new Intent(Intent.ACTION_VIEW);
-        mapIntent.setData(geoLocation);
-        if(mapIntent.resolveActivity(getPackageManager()) != null)
-            startActivity(mapIntent);
-        else
-            Log.d(LOG_TAG, "Couldn't call " + preferedLocation + ", No map app found" );
-    }
 }

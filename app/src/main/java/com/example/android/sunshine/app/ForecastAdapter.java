@@ -2,11 +2,11 @@ package com.example.android.sunshine.app;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CursorAdapter;
 
 /**
  * {@link ForecastAdapter} exposes a list of weather forecasts
@@ -107,41 +107,13 @@ public class ForecastAdapter extends CursorAdapter {
 
         // Read high temperature from cursor
         double high = cursor.getDouble(ForecastFragment.COL_WEATHER_MAX_TEMP);
-        viewHolder.highTempView.setText(Utility.formatTemperature(context, high, isMetric));
-        viewHolder.highTempView.setContentDescription("High Temperature " + Utility.formatTemperature(context, high, isMetric));
+        viewHolder.highTempView.setText(Utility.formatTemperature(context, high));
+        viewHolder.highTempView.setContentDescription("High Temperature " + Utility.formatTemperature(context, high));
 
         //Read low temperature from cursor
         double low = cursor.getDouble(ForecastFragment.COL_WEATHER_MIN_TEMP);
-        viewHolder.lowTempView.setText(Utility.formatTemperature(context, low, isMetric));
-        viewHolder.lowTempView.setContentDescription("Low Temperature " + Utility.formatTemperature(context, low, isMetric));
+        viewHolder.lowTempView.setText(Utility.formatTemperature(context, low));
+        viewHolder.lowTempView.setContentDescription("Low Temperature " + Utility.formatTemperature(context, low));
     }
 
-    /**
-     * Prepare the weather high/lows for presentation.
-     */
-    private String formatHighLows(double high, double low) {
-        boolean isMetric = Utility.isMetric(mContext);
-        String highLowStr = Utility.formatTemperature(mContext, high, isMetric) + "/" + Utility.formatTemperature(mContext, low, isMetric);
-        return highLowStr;
-    }
-
-    /*
-        This is ported from FetchWeatherTask --- but now we go straight from the cursor to the
-        string.
-     */
-    private String convertCursorRowToUXFormat(Cursor cursor) {
-        // get row indices for our cursor
-        int idx_max_temp = ForecastFragment.COL_WEATHER_MAX_TEMP;
-        int idx_min_temp = ForecastFragment.COL_WEATHER_MIN_TEMP;
-        int idx_date = ForecastFragment.COL_WEATHER_DATE;
-        int idx_short_desc = ForecastFragment.COL_WEATHER_DESC;
-
-        String highAndLow = formatHighLows(
-                cursor.getDouble(idx_max_temp),
-                cursor.getDouble(idx_min_temp));
-
-        return Utility.formatDate(cursor.getLong(idx_date)) +
-                " - " + cursor.getString(idx_short_desc) +
-                " - " + highAndLow;
-    }
 }

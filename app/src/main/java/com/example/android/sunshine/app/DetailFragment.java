@@ -181,8 +181,8 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         String monthDay = Utility.getFormattedMonthDay(getContext(), cursor.getLong(COL_WEATHER_DATE));
         String forecast = cursor.getString(COL_WEATHER_DESC);
         boolean isMetric = Utility.isMetric(getActivity());
-        String high = Utility.formatTemperature(getContext(), cursor.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
-        String low = Utility.formatTemperature(getContext(), cursor.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
+        String high = Utility.formatTemperature(getContext(), cursor.getDouble(COL_WEATHER_MAX_TEMP));
+        String low = Utility.formatTemperature(getContext(), cursor.getDouble(COL_WEATHER_MIN_TEMP));
         String humidity = getActivity().getString(R.string.format_humidity, cursor.getDouble(COL_WEATHER_HUMIDITY));
         String wind = Utility.getFormattedWind( getContext(), cursor.getFloat(COL_WEATHER_WIND_SPEED), cursor.getFloat(COL_WEATHER_DEGREES) );
         String pressure = getActivity().getString(R.string.format_pressure, cursor.getDouble(COL_WEATHER_PRESSURE));
