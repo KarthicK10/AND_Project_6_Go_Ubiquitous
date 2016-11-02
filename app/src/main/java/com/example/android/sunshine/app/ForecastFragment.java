@@ -219,6 +219,10 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
 
          /* Get a reference to the list view and attach it to the adapter */
         mListView = (ListView) rootView.findViewById(R.id.listview_forecast);
+        /*Set an empty view to show friendly message when no data available */
+        View emptyView = rootView.findViewById(R.id.emptyview_forecast);
+        mListView.setEmptyView(emptyView);
+        //Set the adapter.
         mListView.setAdapter(mForecastAdapter);
 
         /*Add listener for click on list items to show the detail activity */
