@@ -104,5 +104,7 @@
        
     <!--Message to display when db is empty -->
     <string name="empty_string" translatable="true">No Weather Information Available</string>
+    <!--Message to display when no network available -->
+    <string name="no_network_string" translatable="true">No Weather Information Available. The Network is not available to fetch weather data</string>
 
 </resources>

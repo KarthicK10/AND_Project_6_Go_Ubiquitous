@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
@@ -348,6 +349,7 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
             // to, do so now.
             mListView.smoothScrollToPosition(mSelectedPosition);
         }
+        updateEmptyView();
     }
 
     /**
@@ -395,6 +397,20 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
             }
         }
 
+    }
+
+    /* Updates the empty view with relevant message to give information to the user*/
+    private void updateEmptyView(){
+        if(mForecastAdapter!= null && mForecastAdapter.getCount() == 0){
+            TextView emptyView = (TextView) getView().findViewById(R.id.emptyview_forecast);
+            if(null != emptyView){
+                int message = R.string.empty_string;
+                if(!Utility.checkNetworkConnectivity(getContext())){
+                    message = R.string.no_network_string;
+                }
+                emptyView.setText(message);
+            }
+        }
     }
 
 }
