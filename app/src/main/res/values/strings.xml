@@ -101,10 +101,17 @@
     <string name="pref_enable_notifications_true">Enabled</string>
     <string name="pref_enable_notifications_false">Not Enabled</string>
     <string name="pref_enable_notifications_default" translatable="false">true</string>
-       
+
+    <!-- Key string to represent the notification status -->
+    <string name="pref_location_status_key" translatable="false">location_status</string>
     <!--Message to display when db is empty -->
     <string name="empty_string" translatable="true">No Weather Information Available</string>
     <!--Message to display when no network available -->
     <string name="no_network_string" translatable="true">No Weather Information Available. The Network is not available to fetch weather data</string>
+    <!-- Message to display when server is down -->
+    <string name="server_down_string" translatable="true">No Weather Information Available. The server is down.</string>
+    <!-- Message to display when server is down -->
+    <string name="server_error_string" translatable="true">No Weather Information Available. The server is not returning valid data. Please check for an updated version of Sunshine.</string>
+
 
 </resources>

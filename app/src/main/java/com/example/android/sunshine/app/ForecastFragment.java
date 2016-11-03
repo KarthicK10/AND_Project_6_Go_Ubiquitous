@@ -4,9 +4,11 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -32,7 +34,8 @@ import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
  */
 
 
-public class ForecastFragment extends android.support.v4.app.Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
+public class ForecastFragment extends android.support.v4.app.Fragment
+        implements LoaderManager.LoaderCallbacks<Cursor>, SharedPreferences.OnSharedPreferenceChangeListener{
 
     private static final String LOG_TAG = ForecastFragment.class.getSimpleName();
 
@@ -405,13 +408,51 @@ public class ForecastFragment extends android.support.v4.app.Fragment implements
             TextView emptyView = (TextView) getView().findViewById(R.id.emptyview_forecast);
             if(null != emptyView){
                 int message = R.string.empty_string;
-                if(!Utility.checkNetworkConnectivity(getContext())){
-                    message = R.string.no_network_string;
+                @SunshineSyncAdapter.LOCATION_STATUS int location = Utility.getLocationStatus(getActivity());
+                switch (location){
+                    case SunshineSyncAdapter.LOCATION_STATUS_SERVER_DOWN:
+                        message = R.string.server_down_string;
+                        break;
+                    case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
+                        message = R.string.server_error_string;
+                        break;
+                    default:
+                        message = R.string.no_network_string;
+                        break;
                 }
                 emptyView.setText(message);
             }
         }
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if(key.equals(getString(R.string.pref_location_status_key))){
+            updateEmptyView();
+        }
+    }
+
+    /**
+     * Called when the fragment is visible to the user and actively running.
+     * This is generally
+     * tied to {@link MainActivity#onResume() Activity.onResume} of the containing
+     * Activity's lifecycle.
+     */
+    @Override
+    public void onResume() {
+        PreferenceManager.getDefaultSharedPreferences(getContext()).registerOnSharedPreferenceChangeListener(this);
+        super.onResume();
+    }
+
+    /**
+     * Called when the Fragment is no longer resumed.  This is generally
+     * tied to {@link MainActivity#onPause() Activity.onPause} of the containing
+     * Activity's lifecycle.
+     */
+    @Override
+    public void onPause() {
+        PreferenceManager.getDefaultSharedPreferences(getContext()).unregisterOnSharedPreferenceChangeListener(this);
+        super.onPause();
+    }
 }
 
