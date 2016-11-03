@@ -277,4 +277,12 @@ public class Utility {
                 c.getString(R.string.pref_location_status_key), SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
         return locationStatus;
     }
+
+    /*Resets the location status to SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN */
+    public static void resetLocationStatus(Context c){
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(c);
+        SharedPreferences.Editor spEditor = sharedPreferences.edit();
+        spEditor.putInt(c.getString(R.string.pref_location_status_key), SunshineSyncAdapter.LOCATION_STATUS_UNKNOWN);
+        spEditor.apply(); // Note that apply is used instead of commit - as this will be called from UI thread.
+    }
 }

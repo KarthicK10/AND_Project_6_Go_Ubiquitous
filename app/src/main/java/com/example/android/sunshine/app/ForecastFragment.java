@@ -416,6 +416,9 @@ public class ForecastFragment extends android.support.v4.app.Fragment
                     case SunshineSyncAdapter.LOCATION_STATUS_SERVER_INVALID:
                         message = R.string.server_error_string;
                         break;
+                    case SunshineSyncAdapter.LOCATION_STATUS_INVALID:
+                        message = R.string.location_invalid_string;
+                        break;
                     default:
                         message = R.string.no_network_string;
                         break;

@@ -112,6 +112,8 @@
     <string name="server_down_string" translatable="true">No Weather Information Available. The server is down.</string>
     <!-- Message to display when server is down -->
     <string name="server_error_string" translatable="true">No Weather Information Available. The server is not returning valid data. Please check for an updated version of Sunshine.</string>
+    <!-- Message to display when invalid location is entered-->
+    <string name="location_invalid_string" translatable="true">No Weather Information Available. The location entered is not valid.</string>
 
 
 </resources>
