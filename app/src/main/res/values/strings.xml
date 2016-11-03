@@ -115,5 +115,9 @@
     <!-- Message to display when invalid location is entered-->
     <string name="location_invalid_string" translatable="true">No Weather Information Available. The location entered is not valid.</string>
 
+    <!-- Strings for displaying the state of the location in Settings -->
+    <string name="pref_location_error_description">Invalid Location (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
+    <string name="pref_location_unknown_description">Validating Location... (<xliff:g id="location_setting">%1$s</xliff:g>)"</string>
+
 
 </resources>
