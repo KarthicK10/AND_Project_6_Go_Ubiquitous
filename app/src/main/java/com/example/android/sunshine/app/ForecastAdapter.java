@@ -8,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
 
+import com.bumptech.glide.Glide;
+
 /**
  * {@link ForecastAdapter} exposes a list of weather forecasts
  * from a {@link android.database.Cursor} to a {@link android.widget.ListView}.
@@ -76,25 +78,30 @@ public class ForecastAdapter extends CursorAdapter {
         //Get View type based on cursor position
         int viewType = getItemViewType(cursor.getPosition());
         Log.i(LOG_TAG, "view type : " + viewType);
+        int fallbackIconId;
         if(viewType == VIEW_TYPE_TODAY){
             //First row(Today row) - Get the Art image based on weather condition
-           weatherImageResourceId = Utility.getArtResourceForWeatherCondition(weatherId);
+            fallbackIconId = Utility.getArtResourceForWeatherCondition(weatherId);
         }
         else{
             //Not First row(Future row) - Get the icon image based on weather condition
-            weatherImageResourceId = Utility.getIconResourceForWeatherCondition(weatherId);
+            fallbackIconId = Utility.getIconResourceForWeatherCondition(weatherId);
         }
         //If weather icon/art image not found, use the launcher icon as place holder
-        if(weatherImageResourceId == -1){
-            weatherImageResourceId = R.drawable.ic_launcher;
+        if(fallbackIconId == -1){
+            fallbackIconId = R.drawable.ic_launcher;
         }
 
         //Read and bind weather forecast from cursor to view
         String forecast = cursor.getString(ForecastFragment.COL_WEATHER_DESC);
         viewHolder.forecastView.setText(forecast);
 
-        //Bind the weather image to the view
-        viewHolder.iconView.setImageResource(weatherImageResourceId);
+        //Bind the weather image to the view through Glide
+        Glide.with(context)
+                .load(Utility.getArtUrlForWeatherCondition(context, weatherId))
+                .error(fallbackIconId)
+                .crossFade()
+                .into(viewHolder.iconView);
         viewHolder.iconView.setContentDescription(forecast);
 
         //Read and bind date from cursor to view

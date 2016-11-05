@@ -12,4 +12,5 @@
     <dimen name="today_art_image">100dp</dimen>
     <dimen name="today_forecast_margin_top">32dp</dimen>
     <dimen name="detail_forecast_line_spacing">4dp</dimen>
+    <dimen name="notification_large_icon_default">48dp</dimen>
 </resources>

@@ -22,6 +22,7 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.android.sunshine.app.data.WeatherContract;
 
 /**
@@ -196,7 +197,12 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         mWindTextView.setText(wind);
         mPressureTextView.setText(pressure);
         mForecastTextView.setText(forecast);
-        mIconView.setImageResource(Utility.getArtResourceForWeatherCondition(weatherConditionId));
+        //Load weather image through Glide
+        Glide.with(this)
+                .load(Utility.getArtUrlForWeatherCondition(getActivity(), weatherConditionId))
+                .error(Utility.getArtResourceForWeatherCondition(weatherConditionId))
+                .crossFade()
+                .into(mIconView);
         /*End Bind values to views */
 
         //We will need this for share intent
