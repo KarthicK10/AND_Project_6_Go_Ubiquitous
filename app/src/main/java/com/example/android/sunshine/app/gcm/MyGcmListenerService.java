@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.android.sunshine.app.fcm;
+
+package com.example.android.sunshine.app.gcm;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -21,25 +22,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.example.android.sunshine.app.MainActivity;
 import com.example.android.sunshine.app.R;
-import com.google.firebase.messaging.FirebaseMessagingService;
-import com.google.firebase.messaging.RemoteMessage;
+import com.google.android.gms.gcm.GcmListenerService;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Map;
-
-/**
- * Created by KarthicK on 11/5/2016.
- */
-
-public class MyFcmListenerService extends FirebaseMessagingService {
+public class MyGcmListenerService extends GcmListenerService {
 
     private static final String TAG = "MyGcmListenerService";
 
@@ -52,16 +47,16 @@ public class MyFcmListenerService extends FirebaseMessagingService {
     /**
      * Called when message is received.
      *
-     * @param remoteMessage Remote message from sender.
+     * @param from SenderID of the sender.
+     * @param data Data bundle containing message data as key/value pairs.
+     *             For Set of keys use data.keySet().
      */
     @Override
-    public void onMessageReceived(RemoteMessage remoteMessage) {
-        String from = remoteMessage.getFrom();
-        Map data = remoteMessage.getData();
-        //Time to unparcel the bundle
+    public void onMessageReceived(String from, Bundle data) {
+        // Time to unparcel the bundle!
         if (!data.isEmpty()) {
-            // TODO: fcm_default sender ID comes from the API console
-            String senderId = getString(R.string.fcm_defaultSenderId);
+            // TODO: gcm_default sender ID comes from the API console
+            String senderId = getString(R.string.gcm_defaultSenderId);
             if (senderId.length() == 0) {
                 Toast.makeText(this, "SenderID string needs to be set", Toast.LENGTH_LONG).show();
             }
@@ -69,11 +64,11 @@ public class MyFcmListenerService extends FirebaseMessagingService {
             if ((senderId).equals(from)) {
                 // Process message and then post a notification of the received message.
                 try {
-                    JSONObject jsonObject = new JSONObject(data.get(EXTRA_DATA).toString());
+                    JSONObject jsonObject = new JSONObject(data.getString(EXTRA_DATA));
                     String weather = jsonObject.getString(EXTRA_WEATHER);
                     String location = jsonObject.getString(EXTRA_LOCATION);
                     String alert =
-                            String.format(getString(R.string.fcm_weather_alert), weather, location);
+                            String.format(getString(R.string.gcm_weather_alert), weather, location);
                     sendNotification(alert);
                 } catch (JSONException e) {
                     // JSON parsing failed, so we just let this message go, since GCM is not one
@@ -101,7 +96,7 @@ public class MyFcmListenerService extends FirebaseMessagingService {
         // object along in our notification builder. Generally, you want to use the app icon as the
         // small icon, so that users understand what app is triggering this notification.
         Bitmap largeIcon = BitmapFactory.decodeResource(this.getResources(), R.drawable.art_storm);
-        android.support.v4.app.NotificationCompat.Builder mBuilder =
+        NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.drawable.art_clear)
                         .setLargeIcon(largeIcon)

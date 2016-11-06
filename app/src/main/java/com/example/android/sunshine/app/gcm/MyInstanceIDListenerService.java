@@ -1,5 +1,3 @@
-package com.example.android.sunshine.app.fcm;
-
 /*
  * Copyright (C) 2015 The Android Open Source Project
  *
@@ -16,30 +14,23 @@ package com.example.android.sunshine.app.fcm;
  * limitations under the License.
  */
 
+package com.example.android.sunshine.app.gcm;
+
 import android.content.Intent;
+import com.google.android.gms.iid.InstanceIDListenerService;
 
-import com.google.firebase.iid.FirebaseInstanceIdService;
-
-/**
- * Created by KarthicK on 11/5/2016.
- */
-
-public class MyInstanceIDListenerService extends FirebaseInstanceIdService {
+public class MyInstanceIDListenerService extends InstanceIDListenerService {
     private static final String TAG = "MyInstanceIDLS";
 
     /**
      * Called if InstanceID token is updated. This may occur if the security of
-     * the previous token had been compromised. Note that this is also called
-     * when the InstanceID token is initially generated, so this is where
-     * you retrieve the token.
+     * the previous token had been compromised. This call is initiated by the
+     * InstanceID provider.
      */
-    // [START refresh_token]
     @Override
     public void onTokenRefresh() {
         // Fetch updated Instance ID token.
         Intent intent = new Intent(this, RegistrationIntentService.class);
         startService(intent);
     }
-
-
 }
