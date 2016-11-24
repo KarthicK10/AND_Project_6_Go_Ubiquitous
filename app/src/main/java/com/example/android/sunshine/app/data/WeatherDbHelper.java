@@ -18,7 +18,6 @@ package com.example.android.sunshine.app.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.example.android.sunshine.app.data.WeatherContract.LocationEntry;
 import com.example.android.sunshine.app.data.WeatherContract.WeatherEntry;
@@ -37,46 +36,17 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    private static final String LOG_TAG = WeatherDbHelper.class.getSimpleName();
-
-    /**
-     * Called when the database connection is being configured, to enable features
-     * such as write-ahead logging or foreign key support.
-     * <p>
-     * This method is called before {@link #onCreate}, {@link #onUpgrade},
-     * {@link #onDowngrade}, or {@link #onOpen} are called.  It should not modify
-     * the database except to configure the database connection as required.
-     * </p><p>
-     * This method should only call methods that configure the parameters of the
-     * database connection, such as {@link SQLiteDatabase#enableWriteAheadLogging}
-     * {@link SQLiteDatabase#setForeignKeyConstraintsEnabled},
-     * {@link SQLiteDatabase#setLocale}, {@link SQLiteDatabase#setMaximumSize},
-     * or executing PRAGMA statements.
-     * </p>
-     *
-     * @param db The database.
-     */
-    @Override
-    public void onConfigure(SQLiteDatabase db) {
-        super.onConfigure(db);
-        db.execSQL("PRAGMA foreign_keys=ON;");
-        //db.setForeignKeyConstraintsEnabled(true);
-    }
-
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-
+        // Create a table to hold locations.  A location consists of the string supplied in the
+        // location setting, the city name, and the latitude and longitude
         final String SQL_CREATE_LOCATION_TABLE = "CREATE TABLE " + LocationEntry.TABLE_NAME + " (" +
-                LocationEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                LocationEntry.COLUMN_LOCATION_SETTING + " TEXT NOT NULL UNIQUE, " +
+                LocationEntry._ID + " INTEGER PRIMARY KEY," +
+                LocationEntry.COLUMN_LOCATION_SETTING + " TEXT UNIQUE NOT NULL, " +
                 LocationEntry.COLUMN_CITY_NAME + " TEXT NOT NULL, " +
                 LocationEntry.COLUMN_COORD_LAT + " REAL NOT NULL, " +
-                LocationEntry.COLUMN_COORD_LONG + " REAL NOT NULL);";
-
-        Log.i(LOG_TAG, SQL_CREATE_LOCATION_TABLE);
-
-        sqLiteDatabase.execSQL(SQL_CREATE_LOCATION_TABLE);
-
+                LocationEntry.COLUMN_COORD_LONG + " REAL NOT NULL " +
+                " );";
 
         final String SQL_CREATE_WEATHER_TABLE = "CREATE TABLE " + WeatherEntry.TABLE_NAME + " (" +
                 // Why AutoIncrement here, and not above?
@@ -109,10 +79,8 @@ public class WeatherDbHelper extends SQLiteOpenHelper {
                 " UNIQUE (" + WeatherEntry.COLUMN_DATE + ", " +
                 WeatherEntry.COLUMN_LOC_KEY + ") ON CONFLICT REPLACE);";
 
+        sqLiteDatabase.execSQL(SQL_CREATE_LOCATION_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_WEATHER_TABLE);
-
-
-
     }
 
     @Override
