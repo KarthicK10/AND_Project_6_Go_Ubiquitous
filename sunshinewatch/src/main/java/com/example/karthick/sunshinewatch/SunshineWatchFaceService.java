@@ -31,11 +31,22 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Wearable;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
@@ -86,7 +97,10 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         }
     }
 
-    private class Engine extends CanvasWatchFaceService.Engine {
+    private class Engine extends CanvasWatchFaceService.Engine implements
+            DataApi.DataListener,
+            GoogleApiClient.ConnectionCallbacks,
+            GoogleApiClient.OnConnectionFailedListener{
         final Handler mUpdateTimeHandler = new EngineHandler(this);
         boolean mRegisteredTimeZoneReceiver = false;
         Paint mBackgroundPaint;
@@ -115,6 +129,18 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         Paint mHighTempTextPaint;
         Paint mLowTempTextPaint;
 
+        public static final String WATCH_FACE_PATH = "/watch_face";
+
+        private GoogleApiClient mGoogleApiClient;
+
+        private int mWeatherId;
+        private double mHighTemp;
+        private double mLowTemp;
+
+        public static final String HIGH_TEMP = "HIGH_TEMP";
+        public static final String LOW_TEMP = "LOW_TEMP";
+        public static final String WEATHER_ID = "WEATHER_ID";
+
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
@@ -137,7 +163,16 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             mLowTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
 
             mCalendar = Calendar.getInstance();
+
+            mGoogleApiClient = new GoogleApiClient.Builder(SunshineWatchFaceService.this)
+                    .addApi(Wearable.API)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .build();
+
         }
+
+
 
         @Override
         public void onDestroy() {
@@ -162,6 +197,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
                 // Update time zone in case it changed while we weren't visible.
                 mCalendar.setTimeZone(TimeZone.getDefault());
+                mGoogleApiClient.connect();
                 invalidate();
             } else {
                 unregisterReceiver();
@@ -262,7 +298,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         private void drawSunshineWeather(Canvas canvas){
             float x = mXOffset;
             float y = mYOffset;
-            weatherIconResourceId = getIconResourceForWeatherCondition(511);
+            weatherIconResourceId = getIconResourceForWeatherCondition(mWeatherId);
             if(weatherIconResourceId != -1){
                 Bitmap weatherIconBitMap = BitmapFactory.decodeResource(getResources(), weatherIconResourceId);
                 float scaleFactor = getResources().getDimension(R.dimen.digital_text_size);
@@ -273,8 +309,8 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                 );
                 canvas.drawBitmap(weatherIconBitMapScaled, mXOffset, mYOffset, null);
             }
-            String highTemperature = String.format(getResources().getString(R.string.format_temperature), 36f);
-            String lowTemperature = String.format(getResources().getString(R.string.format_temperature), 26f);
+            String highTemperature = String.format(getResources().getString(R.string.format_temperature), mHighTemp);
+            String lowTemperature = String.format(getResources().getString(R.string.format_temperature), mLowTemp);
             canvas.drawText(highTemperature, mXOffset + 60, mYOffset+50f, mHighTempTextPaint);
             canvas.drawText(lowTemperature, mXOffset + 140, mYOffset+50f, mLowTempTextPaint);
 
@@ -310,6 +346,40 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                         - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
             }
+        }
+
+        @Override
+        public void onConnected(@Nullable Bundle bundle) {
+            Wearable.DataApi.addListener(mGoogleApiClient, this);
+        }
+
+        @Override
+        public void onConnectionSuspended(int i) {
+
+        }
+
+        @Override
+        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+        }
+
+        @Override
+        public void onDataChanged(DataEventBuffer dataEvents) {
+            for (DataEvent event : dataEvents) {
+                if (event.getType() == DataEvent.TYPE_CHANGED) {
+                    // DataItem changed
+                    DataItem item = event.getDataItem();
+                    if (item.getUri().getPath().compareTo(WATCH_FACE_PATH) == 0) {
+                        DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+                        mWeatherId = dataMap.getInt(WEATHER_ID);
+                        mHighTemp = dataMap.getDouble(HIGH_TEMP);
+                        mLowTemp = dataMap.getDouble(LOW_TEMP);
+                    }
+                } else if (event.getType() == DataEvent.TYPE_DELETED) {
+                    // DataItem deleted
+                }
+            }
+            invalidate();
         }
 
         /**
