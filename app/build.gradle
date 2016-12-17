@@ -34,4 +34,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-location:9.0.0'
     compile 'com.google.android.support:wearable:2.0.0-alpha3'
     compile 'com.google.android.gms:play-services-wearable:9.0.0'
+    wearApp project(':sunshinewatch');
 }
