@@ -21,6 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -107,6 +109,12 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
          */
         boolean mLowBitAmbient;
 
+        /*weather icon resource id */
+        private int weatherIconResourceId = -1;
+
+        Paint mHighTempTextPaint;
+        Paint mLowTempTextPaint;
+
         @Override
         public void onCreate(SurfaceHolder holder) {
             super.onCreate(holder);
@@ -124,6 +132,9 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
             mTextPaint = new Paint();
             mTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+
+            mHighTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
+            mLowTempTextPaint = createTextPaint(resources.getColor(R.color.digital_text));
 
             mCalendar = Calendar.getInstance();
         }
@@ -191,6 +202,10 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                     ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
 
             mTextPaint.setTextSize(textSize);
+            float highTempTextSize = resources.getDimension(R.dimen.high_temp_text_size);
+            float lowTempTextSize = resources.getDimension(R.dimen.low_temp_text_size);
+            mHighTempTextPaint.setTextSize(highTempTextSize);
+            mLowTempTextPaint.setTextSize(lowTempTextSize);
         }
 
         @Override
@@ -240,6 +255,29 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                     : String.format("%d:%02d:%02d", mCalendar.get(Calendar.HOUR),
                     mCalendar.get(Calendar.MINUTE), mCalendar.get(Calendar.SECOND));
             canvas.drawText(text, mXOffset, mYOffset, mTextPaint);
+            drawSunshineWeather(canvas);
+        }
+
+        /*Method to draw the weather information on the watch face canvas*/
+        private void drawSunshineWeather(Canvas canvas){
+            float x = mXOffset;
+            float y = mYOffset;
+            weatherIconResourceId = getIconResourceForWeatherCondition(511);
+            if(weatherIconResourceId != -1){
+                Bitmap weatherIconBitMap = BitmapFactory.decodeResource(getResources(), weatherIconResourceId);
+                float scaleFactor = getResources().getDimension(R.dimen.digital_text_size);
+                float scale = scaleFactor/(float) weatherIconBitMap.getHeight();
+                Bitmap weatherIconBitMapScaled = Bitmap.createScaledBitmap(
+                        weatherIconBitMap, (int) (weatherIconBitMap.getWidth()*scale),
+                        (int) (weatherIconBitMap.getHeight()*scale), true
+                );
+                canvas.drawBitmap(weatherIconBitMapScaled, mXOffset, mYOffset, null);
+            }
+            String highTemperature = String.format(getResources().getString(R.string.format_temperature), 36f);
+            String lowTemperature = String.format(getResources().getString(R.string.format_temperature), 26f);
+            canvas.drawText(highTemperature, mXOffset + 60, mYOffset+50f, mHighTempTextPaint);
+            canvas.drawText(lowTemperature, mXOffset + 140, mYOffset+50f, mLowTempTextPaint);
+
         }
 
         /**
@@ -272,6 +310,41 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
                         - (timeMs % INTERACTIVE_UPDATE_RATE_MS);
                 mUpdateTimeHandler.sendEmptyMessageDelayed(MSG_UPDATE_TIME, delayMs);
             }
+        }
+
+        /**
+         * Helper method to provide the icon resource id according to the weather condition id returned
+         * by the OpenWeatherMap call.
+         * @param weatherId from OpenWeatherMap API response
+         * @return resource id for the corresponding icon. -1 if no relation is found.
+         */
+        public int getIconResourceForWeatherCondition(int weatherId) {
+            // Based on weather code data found at:
+            // http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
+            if (weatherId >= 200 && weatherId <= 232) {
+                return R.drawable.ic_storm;
+            } else if (weatherId >= 300 && weatherId <= 321) {
+                return R.drawable.ic_light_rain;
+            } else if (weatherId >= 500 && weatherId <= 504) {
+                return R.drawable.ic_rain;
+            } else if (weatherId == 511) {
+                return R.drawable.ic_snow;
+            } else if (weatherId >= 520 && weatherId <= 531) {
+                return R.drawable.ic_rain;
+            } else if (weatherId >= 600 && weatherId <= 622) {
+                return R.drawable.ic_snow;
+            } else if (weatherId >= 701 && weatherId <= 761) {
+                return R.drawable.ic_fog;
+            } else if (weatherId == 761 || weatherId == 781) {
+                return R.drawable.ic_storm;
+            } else if (weatherId == 800) {
+                return R.drawable.ic_clear;
+            } else if (weatherId == 801) {
+                return R.drawable.ic_light_clouds;
+            } else if (weatherId >= 802 && weatherId <= 804) {
+                return R.drawable.ic_cloudy;
+            }
+            return -1;
         }
     }
 }
