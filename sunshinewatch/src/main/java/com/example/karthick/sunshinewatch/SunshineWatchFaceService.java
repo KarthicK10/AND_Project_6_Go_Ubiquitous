@@ -301,18 +301,18 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             weatherIconResourceId = getIconResourceForWeatherCondition(mWeatherId);
             if(weatherIconResourceId != -1){
                 Bitmap weatherIconBitMap = BitmapFactory.decodeResource(getResources(), weatherIconResourceId);
-                float scaleFactor = getResources().getDimension(R.dimen.digital_text_size);
+                float scaleFactor = getResources().getDimension(R.dimen.high_temp_text_size);
                 float scale = scaleFactor/(float) weatherIconBitMap.getHeight();
                 Bitmap weatherIconBitMapScaled = Bitmap.createScaledBitmap(
                         weatherIconBitMap, (int) (weatherIconBitMap.getWidth()*scale),
                         (int) (weatherIconBitMap.getHeight()*scale), true
                 );
-                canvas.drawBitmap(weatherIconBitMapScaled, mXOffset, mYOffset, null);
+                canvas.drawBitmap(weatherIconBitMapScaled, mXOffset, mYOffset+100f-weatherIconBitMapScaled.getHeight(), null);
             }
             String highTemperature = String.format(getResources().getString(R.string.format_temperature), mHighTemp);
             String lowTemperature = String.format(getResources().getString(R.string.format_temperature), mLowTemp);
-            canvas.drawText(highTemperature, mXOffset + 60, mYOffset+50f, mHighTempTextPaint);
-            canvas.drawText(lowTemperature, mXOffset + 140, mYOffset+50f, mLowTempTextPaint);
+            canvas.drawText(highTemperature, mXOffset + 100, mYOffset+100f, mHighTempTextPaint);
+            canvas.drawText(lowTemperature, mXOffset + 200, mYOffset+100f, mLowTempTextPaint);
 
         }
 
